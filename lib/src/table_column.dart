@@ -17,6 +17,7 @@ class TableColumn extends StatelessWidget {
   final int? highlightedRowIndex;
   final bool allowRowHighlight;
   final Color? rowHighlightColor;
+  final List<int>? selectedRows;
 
   TableColumn(
     this.header,
@@ -29,6 +30,7 @@ class TableColumn extends StatelessWidget {
     this.highlightedRowIndex,
     this.allowRowHighlight,
     this.rowHighlightColor,
+    this.selectedRows,
   );
 
   @override
@@ -73,12 +75,20 @@ class TableColumn extends StatelessWidget {
                           },
                           child: Container(
                             color: (allowRowHighlight &&
-                                    highlightedRowIndex != null &&
-                                    highlightedRowIndex ==
-                                        dataList!.indexOf(rowMap))
+                                    selectedRows != null &&
+                                    selectedRows!
+                                        .contains(dataList!.indexOf(rowMap)))
                                 ? rowHighlightColor ??
                                     Colors.yellowAccent.withOpacity(0.7)
                                 : null,
+
+                            // color: (allowRowHighlight &&
+                            //         highlightedRowIndex != null &&
+                            //         highlightedRowIndex ==
+                            //             dataList!.indexOf(rowMap))
+                            //     ? rowHighlightColor ??
+                            //         Colors.yellowAccent.withOpacity(0.7)
+                            //     : null,
                             child: tableCellBuilder != null
                                 ? tableCellBuilder!(
                                     getFormattedValue(
@@ -88,7 +98,7 @@ class TableColumn extends StatelessWidget {
                                         column?.defaultValue ?? '',
                                       ),
                                     ),
-                                  )
+                                    dataList!.indexOf(rowMap))
                                 : Container(
                                     padding: EdgeInsets.symmetric(
                                         horizontal: 4.0, vertical: 2.0),

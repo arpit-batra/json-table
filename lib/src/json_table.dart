@@ -7,7 +7,7 @@ import 'json_table_column.dart';
 import 'table_column.dart';
 
 typedef TableHeaderBuilder = Widget Function(String? header);
-typedef TableCellBuilder = Widget Function(dynamic value);
+typedef TableCellBuilder = Widget Function(dynamic value, int index);
 typedef OnRowSelect = void Function(int index, dynamic map);
 typedef OnRowHold = void Function(int index);
 
@@ -40,10 +40,10 @@ class JsonTable extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _JsonTableState createState() => _JsonTableState();
+  JsonTableState createState() => JsonTableState();
 }
 
-class _JsonTableState extends State<JsonTable> {
+class JsonTableState extends State<JsonTable> {
   Set<String?> headerList = new Set();
   Set<String?> filterHeaderList = new Set();
   int? highlightedRowIndex;
@@ -52,11 +52,16 @@ class _JsonTableState extends State<JsonTable> {
   int? pagesCount;
   List<Map>? data;
   Map<String?, String?> headerLabels = Map<String?, String?>();
+  List<int> selectedRows = [];
 
   @override
   void initState() {
     super.initState();
     init();
+  }
+
+  void resetSelectedRows() {
+    selectedRows = [];
   }
 
   void init() {
@@ -141,17 +146,17 @@ class _JsonTableState extends State<JsonTable> {
                         .where((item) => filterHeaderList.contains(item.field))
                         .map(
                           (item) => TableColumn(
-                            item.label,
-                            _getPaginatedData(),
-                            widget.tableHeaderBuilder,
-                            widget.tableCellBuilder,
-                            item,
-                            onRowTap,
-                            widget.onRowHold,
-                            highlightedRowIndex,
-                            widget.allowRowHighlight,
-                            widget.rowHighlightColor,
-                          ),
+                              item.label,
+                              _getPaginatedData(),
+                              widget.tableHeaderBuilder,
+                              widget.tableCellBuilder,
+                              item,
+                              onRowTap,
+                              onRowHold,
+                              highlightedRowIndex,
+                              widget.allowRowHighlight,
+                              widget.rowHighlightColor,
+                              selectedRows),
                         )
                         .toList(),
                   )
@@ -165,10 +170,11 @@ class _JsonTableState extends State<JsonTable> {
                             widget.tableCellBuilder,
                             null,
                             onRowTap,
-                            widget.onRowHold,
+                            onRowHold,
                             highlightedRowIndex,
                             widget.allowRowHighlight,
                             widget.rowHighlightColor,
+                            selectedRows,
                           ),
                         )
                         .toList(),
@@ -224,13 +230,18 @@ class _JsonTableState extends State<JsonTable> {
     this.filterHeaderList.addAll(headerList);
   }
 
-  onRowTap(int index, dynamic rowMap) {
+  onRowHold(int index) {
     setState(() {
-      if (highlightedRowIndex == index)
-        highlightedRowIndex = null;
-      else
-        highlightedRowIndex = index;
+      if (selectedRows.contains(index)) {
+        selectedRows.remove(index);
+      } else {
+        selectedRows.add(index);
+      }
     });
+    if (widget.onRowHold != null) widget.onRowHold!(index);
+  }
+
+  onRowTap(int index, dynamic rowMap) {
     if (widget.onRowSelect != null) widget.onRowSelect!(index, rowMap);
   }
 
